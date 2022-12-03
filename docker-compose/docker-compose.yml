@@ -1,0 +1,52 @@
+version: '3.4'
+services:
+  # database configuration
+  db:
+    # image-name with the version flag, you could also use the latest flag
+    # but passbolt doesn't support the newest mariadb-version
+    image: mariadb:<version>
+      # location of the file containing the environment variables
+      # located in a file for a better overview
+    env_file:
+      - env/mysql.env
+    # mounting of volumes
+    volumes:
+      - /path/to/your/database_volume:/var/lib/mysql
+      - /path/to/your/<mysqldump>.sql:/docker-entrypoint-initdb.d/<mysqldump>.sql
+    ports:
+      - "127.0.0.1:3306:3306"
+
+  # passbolt configuration
+  passbolt:
+    image: passbolt/passbolt:<version>-<edition>
+    tty: true
+    # compose starts and stops containers in dependency order
+    depends_on:
+      - db
+    # location of the file containing the environment variables
+    # located in a file for a better overview
+    env_file:
+      - env/passbolt.env
+
+    # mounting of volumes
+    volumes:
+      - /path/to/your/gpg_volume/serverkey.asc:/etc/passbolt/gpg/serverkey.asc
+      - /path/to/your/gpg_volume/serverkey_private.asc:/etc/passbolt/gpg/serverkey_private.asc
+      - /path/to/your/config_volume/subscription_key.txt:/etc/passbolt/subscription_key.txt
+      - /path/to/your/config_volume/passbolt.php:/etc/passbolt/passbolt.php
+      - /path/to/your/certs_volume/<certificate>.crt:/etc/ssl/certs/<certificate>.crt
+      - /path/to/your/certs_volume/<certificate>.key:/etc/ssl/certs/<certificate>.key
+      - /path/to/your/certs_volume/<root>.crt:/etc/ssl/certs/<root>.crt
+      - /path/to/your/certs_volume/<intermediate>.crt:/etc/ssl/certs/<intermediate>.crt
+    # wait for the entrypoint script (db-import) to finish
+    # and start up the database services
+    command: ["/usr/bin/wait-for.sh", "-t", "0", "db:3306", "--", "/docker-entrypoint.sh"]
+    ports:
+      - 80:80
+      - 443:443
+
+volumes:
+  database_volume:
+  gpg_volume:
+  config_volume:
+  certs_volume:
