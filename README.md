@@ -96,3 +96,6 @@ Make sure to test the fuctionatilty of your passbolt server to confirm the succe
 - ldaps-sync
 - creating, syncing, shareing and copying passwords accross your server
 - account recovery
+
+## Help
+If you need anything, feel free to contact me, I'm always glad to help
